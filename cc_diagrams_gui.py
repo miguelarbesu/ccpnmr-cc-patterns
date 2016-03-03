@@ -153,9 +153,16 @@ class CCPaternsPopup(BasePopup):
         self.nextButton.grid(row=row, column=column, sticky='ew')
 
         column += 1
+        texts = ['Show Complete Spectrum']
+        commands = [self.select_all_residues]
+        show_all_button = ButtonList(residueFrame, commands=commands,
+                                     texts=texts)
+        show_all_button.grid(row=row, column=column, sticky='ew')
+
+        column += 1
         self.peak_text = Label(residueFrame, text=' ', grid=(row, column))
 
-        residueFrame.expandGrid(0, 5)
+        residueFrame.expandGrid(0, 6)
         column += 1
         self.ppm_text = Label(residueFrame, text=' ', grid=(row, column), sticky='e')
 
@@ -177,6 +184,18 @@ class CCPaternsPopup(BasePopup):
         self.simulated_spectrum.register_listener(self.update_diagram)
 
         self.update_residues()
+        #self.select_all_residues()
+
+    def select_all_residues(self):
+        chain = self.molPulldown.getObject()
+        residues = chain.sortedResidues()
+        self.simulated_spectrum.update_residues(residues)
+        colors = [REDS[1], BLUES[1], GREENS[1]]
+
+        labels=['all intra-residual', 'all inter-residual', ' ']
+        self.patternSelector.update(objects=['intra1', 'seq', 'intra2'],
+                                    labels=labels,
+                                    colors=colors)
 
     def previous(self):
         '''Called by previous button. Decreases both
@@ -336,23 +355,24 @@ class CCPaternsPopup(BasePopup):
         all_symbols = []
         all_colors = []
         self.visible_peaks = []
-        if 'intra1' in selected:
-            peaks = spec.intra_residual_peaks[0]
-            data_sets, symbols, colors = self.create_data_sets(peaks, REDS)
-            all_data_sets.extend(data_sets)
-            all_symbols.extend(symbols)
-            all_colors.extend(colors)
-            self.visible_peaks.extend(peaks)
-        if 'intra2' in selected:
-            peaks = spec.intra_residual_peaks[1]
-            data_sets, symbols, colors = self.create_data_sets(peaks, GREENS)
-            all_data_sets.extend(data_sets)
-            all_symbols.extend(symbols)
-            all_colors.extend(colors)
-            self.visible_peaks.extend(peaks)
-        if 'seq' in selected:
-            peaks = spec.sequential_peaks[0]
-            data_sets, symbols, colors = self.create_data_sets(peaks, BLUES)
+
+        if len(spec.intra_residual_peaks) == 2:
+            intra1 = spec.intra_residual_peaks[0]
+            intra2 = spec.intra_residual_peaks[1]
+            inter = spec.sequential_peaks[0]
+        elif len(spec.intra_residual_peaks) > 2:
+            intra1 = [item for sublist in spec.intra_residual_peaks for item in sublist]
+            inter = [item for sublist in spec.sequential_peaks for item in sublist]
+            intra2 = []
+
+        for peaks, color_type, kind in [(intra1, REDS, 'intra1'),
+                                        (intra2, GREENS, 'intra2'),
+                                        (inter, BLUES, 'seq')]:
+            if not kind in selected:
+                continue
+            peaks = self.filter_by_labeling_threshold(peaks)
+            data_sets, symbols, colors = self.create_data_sets(peaks,
+                                                               color_type)
             all_data_sets.extend(data_sets)
             all_symbols.extend(symbols)
             all_colors.extend(colors)
@@ -380,7 +400,7 @@ class CCPaternsPopup(BasePopup):
         symbols = []
         data_colors = []
 
-        for peak in self.filter_by_labeling_threshold(peaks):
+        for peak in peaks:
             data_point = peak.get_xy() + [peak.colabeling**0.5 * 1.5]
             data_sets.append([data_point])
             symbols.append('errorCircle')
@@ -406,7 +426,6 @@ class CCPaternsPopup(BasePopup):
         self.update_crosshairs(x, y, event)
         self.update_peak_text(self.find_closest_peak(x, y))
         self.update_ppm_text(x, y)
-
 
     def update_crosshairs(self, x, y, event):
         '''Update the crosshairs on the spectra based

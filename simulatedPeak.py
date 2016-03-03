@@ -78,12 +78,29 @@ class SimulatedPeak(object):
             fracs = getExperimentAtomPairFractions(experiment, atom1, atom2)
         else:
             scheme = self.simulated_partial_spectrum.labelingScheme
+            if not check_scheme(scheme, [atom1, atom2]):
+                self.colabeling = 0.0
+                return
             fracs = getSchemeAtomPairFractions(scheme, atom1, atom2)
         if not fracs:
             self.colabeling = 1.0
         else:
             fraction = fracs[('13C', '13C')]
             self.colabeling = fraction
+
+def check_scheme(scheme, atoms):
+    '''Check whether info is present in labeling scheme about
+       the residue types used. This is necessary to avoid
+       annoying popup coming up.
+
+    '''
+    for atom in atoms:
+        ccpCode = atom.residue.ccpCode
+        molType = atom.residue.molResidue.molType
+        if not scheme.findFirstChemCompLabel(ccpCode=ccpCode,
+                                             molType=molType):
+            return False
+    return True
 
 
 def get_peakDimContribs(atom, dim_number=None, spectrum=None,
