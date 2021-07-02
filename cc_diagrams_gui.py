@@ -160,6 +160,14 @@ class CCPaternsPopup(BasePopup):
         show_all_button.grid(row=row, column=column, sticky='ew')
 
         column += 1
+        texts = ['Save peaks']
+        commands = [self.save_peaks]
+        show_all_button = ButtonList(residueFrame, commands=commands,
+                                     texts=texts)
+        show_all_button.grid(row=row, column=column, sticky='ew')
+
+
+        column += 1
         self.peak_text = Label(residueFrame, text=' ', grid=(row, column))
 
         residueFrame.expandGrid(0, 6)
@@ -228,6 +236,12 @@ class CCPaternsPopup(BasePopup):
 
         '''
         self.update_diagram()
+    
+    
+    def save_peaks(self, data_sets):
+        '''Save theoretical peak as coordinates + peak size'''
+        pass
+
 
     def updatePatternSelector(self):
         '''Change the labels on the partitioned
@@ -356,6 +370,7 @@ class CCPaternsPopup(BasePopup):
         all_colors = []
         self.visible_peaks = []
 
+        intra_peaks = spec.intra_residual_peaks
         if len(spec.intra_residual_peaks) == 2:
             intra1 = spec.intra_residual_peaks[0]
             intra2 = spec.intra_residual_peaks[1]
@@ -385,6 +400,7 @@ class CCPaternsPopup(BasePopup):
         self.diagram.update(dataSets=all_data_sets,
                             dataColors=all_colors,
                             symbols=all_symbols)
+        # print "Here is the data\n", intra_peaks, data_sets
 
     def create_data_sets(self, peaks, colors):
         '''Make data sets that can be read by the
