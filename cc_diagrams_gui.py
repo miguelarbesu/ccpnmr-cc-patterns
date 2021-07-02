@@ -238,9 +238,20 @@ class CCPaternsPopup(BasePopup):
         self.update_diagram()
     
     
-    def save_peaks(self, data_sets):
-        '''Save theoretical peak as coordinates + peak size'''
-        pass
+    def save_peaks(self):
+        '''Save the expected peaks: names, positions, weights.
+        '''
+        scheme = simulated_spectrum.labelingScheme
+        chain = simulated_spectrum.chain
+        defaultName = 'expected-peaks_%s_%s.tsv' % (chain, scheme)
+        fileName = argServer.askString('Output file name', defaultName)
+    
+        if not fileName:
+            return
+        # fileHandle = open(fileName, 'w')
+        # fileHandle.write('%d\t%d\n' % (a,b))
+        # fileHandle.close()
+        
 
 
     def updatePatternSelector(self):
