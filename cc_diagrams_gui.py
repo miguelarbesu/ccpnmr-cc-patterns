@@ -241,13 +241,14 @@ class CCPaternsPopup(BasePopup):
     def save_peaks(self):
         '''Save the expected peaks: names, positions, weights.
         '''
-        scheme = simulated_spectrum.labelingScheme
-        chain = simulated_spectrum.chain
-        defaultName = 'expected-peaks_%s_%s.tsv' % (chain, scheme)
-        fileName = argServer.askString('Output file name', defaultName)
-    
-        if not fileName:
-            return
+        chain = self.molPulldown.getObject()
+        chain_name = '%s-%s' % (chain.molSystem.code, chain.code)
+        scheme = self.simulated_spectrum.labelingScheme
+        defaultName = 'expected-peaks_%s_%s.tsv' % (chain_name, scheme)
+        print defaultName
+        # fileName = argServer.askString('Output file name', defaultName)
+        # if not fileName:
+        #     return
         # fileHandle = open(fileName, 'w')
         # fileHandle.write('%d\t%d\n' % (a,b))
         # fileHandle.close()
