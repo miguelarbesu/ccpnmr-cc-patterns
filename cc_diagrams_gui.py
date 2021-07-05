@@ -8,6 +8,8 @@ import simulatedPartialSpectrum
 reload(simulatedPartialSpectrum)
 
 from simulatedPartialSpectrum import SimulatedPartialSpectrum
+from simulatedPartialSpectrum import get_carbons
+from itertools import product
 from ccpnmr.analysis.core.AssignmentBasic import getShiftLists
 from ccpnmr.analysis.popups.BasePopup import BasePopup
 from memops.gui.Frame import Frame
@@ -241,18 +243,36 @@ class CCPaternsPopup(BasePopup):
     def save_peaks(self):
         '''Save the expected peaks: names, positions, weights.
         '''
+        spec = self.simulated_spectrum
+
         chain = self.molPulldown.getObject()
         chain_name = '%s-%s' % (chain.molSystem.code, chain.code)
-        scheme = self.simulated_spectrum.labelingScheme
-        defaultName = 'expected-peaks_%s_%s.tsv' % (chain_name, scheme)
-        print defaultName
+        # Automatic scheme not properly defined, drop for now 
+        # scheme = spec.labelingScheme
+        # fileName = 'expected-peaks_%s_%s.tsv' % (chain_name, scheme)
+        fileName = 'expected-peaks_%s.tsv' % (chain_name)
+        fileHandle = open(fileName, 'w')
+    
+        peaks = self.visible_peaks
+
+        for peak in peaks:
+            ppm = peak.get_xy()
+            weight = peak.colabeling
+            fileHandle.write('%.3f\t%.3f\t%.3f\n' % (ppm[0], ppm[1], weight))
+        
+        print 'Saved expected peaks to %s' % (fileName)
+        
+        fileHandle.close()
+        # The following block each residue name and intra-residue C-C correlations.
+        # for residue in spec.residues:
+        #     peaks_one_residue = []
+        #     carbons = get_carbons(residue)
+        #     for carbon1, carbon2 in product(carbons, repeat=2):
+        #         print carbon1.getResidue().getCcpCode(), carbon1.getName(), carbon2.getName()
+
         # fileName = argServer.askString('Output file name', defaultName)
         # if not fileName:
         #     return
-        # fileHandle = open(fileName, 'w')
-        # fileHandle.write('%d\t%d\n' % (a,b))
-        # fileHandle.close()
-        
 
 
     def updatePatternSelector(self):
